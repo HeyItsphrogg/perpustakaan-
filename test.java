@@ -17,7 +17,7 @@ public class test {
     }
 
     public static void main(String[] args) {
-        System.out.println("Bilangan prima antara 1 sampai 30aan:");
+        System.out.println("Bilangan prima antara 1 sampai 30an:");
         for (int angka = 1; angka <= 30; angka++) {
             if (isPrima(angka)) {
                 System.out.print(angka + " ");
