@@ -12,10 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Halaman master data generik: pencarian + tabel + tombol Tambah / Edit / Hapus.
- * Dipakai oleh BukuPanel, AnggotaPanel, dan KategoriPanel.
- */
+
 public abstract class CrudPanel<T> extends Page {
     private static final int PAD = 12, W_EDIT = 50, W_HAPUS = 60;
 
@@ -100,6 +97,12 @@ public abstract class CrudPanel<T> extends Page {
     /** Aturan bisnis sebelum hapus; lempar BusinessRuleException jika tidak boleh dihapus. */
     protected void cekHapus(T item) throws BusinessRuleException { }
 
+    /** Simpan ke database. baru == true -> INSERT, false -> UPDATE. */
+    protected void simpanDb(T item, boolean baru) throws Exception { }
+
+    /** Hapus dari database. */
+    protected void hapusDb(T item) throws Exception { }
+
     // ---------- logika bersama ----------
     @Override public void refresh() { reload(); }
 
@@ -118,6 +121,12 @@ public abstract class CrudPanel<T> extends Page {
     private void tambah() {
         T t = form(null);
         if (t != null) {
+            try {
+                simpanDb(t, true);
+            } catch (Exception e) {
+                warn("Gagal menyimpan: " + e.getMessage());
+                return;
+            }
             items.add(t);
             Data.catat(logName, "Ditambahkan: " + t);
             reload();
@@ -126,6 +135,14 @@ public abstract class CrudPanel<T> extends Page {
 
     private void ubah(T t) {
         if (form(t) != null) {
+            try {
+                simpanDb(t, false);
+            } catch (Exception e) {
+                warn("Gagal menyimpan: " + e.getMessage());
+                try { Data.muat(); } catch (Exception ignored) { }   // kembalikan data dari database
+                reload();
+                return;
+            }
             Data.catat(logName, "Diperbarui: " + t);
             reload();
         }
@@ -140,6 +157,12 @@ public abstract class CrudPanel<T> extends Page {
         }
         int ok = JOptionPane.showConfirmDialog(this, "Hapus data \"" + t + "\"?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
         if (ok == JOptionPane.YES_OPTION) {
+            try {
+                hapusDb(t);
+            } catch (Exception e) {
+                warn("Gagal menghapus: " + e.getMessage());
+                return;
+            }
             items.remove(t);
             Data.catat(logName, "Dihapus: " + t);
             reload();

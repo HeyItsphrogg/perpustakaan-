@@ -83,6 +83,7 @@ public class LoginFrame extends JFrame {
         String p = new String(tfPass.getPassword());
         for (Data.User user : Data.users) {
             if (user.username.equals(u) && user.password.equals(p)) {
+                Data.userLogin = user;   // dipakai sebagai id_user
                 dispose();
                 new MainFrame(user).setVisible(true);
                 return;

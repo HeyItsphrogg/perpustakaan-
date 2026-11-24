@@ -20,9 +20,10 @@ public final class Data {
 
     // ===================== MODEL =====================
     public static class User {
-        public final String username, password, role;
-        public User(String username, String password, String role) {
-            this.username = username; this.password = password; this.role = role;
+        public final int id;                                   // id_user
+        public final String username, password, nama, role;   // role = kolom "peran"
+        public User(int id, String username, String password, String nama, String role) {
+            this.id = id; this.username = username; this.password = password; this.nama = nama; this.role = role;
         }
     }
 
@@ -33,6 +34,7 @@ public final class Data {
     }
 
     public static class Buku {
+        public int id;   // id_buku
         public String judul = "", pengarang = "", kategori = "";
         public int stok;
         public Buku() {}
@@ -43,6 +45,7 @@ public final class Data {
     }
 
     public static class Anggota {
+        public int id;   // id_anggota
         public String nama = "", jenis = "Mahasiswa", telepon = "", alamat = "";
         public Anggota() {}
         public Anggota(String nama, String jenis, String telepon, String alamat) {
@@ -53,6 +56,7 @@ public final class Data {
 
     /** Satu baris detail transaksi (satu eksemplar buku yang dipinjam). */
     public static class Detail {
+        public int id;   // id_detail
         public final Buku buku;
         public LocalDate tglKembali;   // null = belum dikembalikan
         public int denda;
@@ -83,52 +87,26 @@ public final class Data {
         }
     }
 
-    // ===================== DATA CONTOH =====================
-    public static final List<User> users = new ArrayList<>(List.of(
-            new User("admin", "admin123", "Admin"),
-            new User("petugas01", "petugas123", "Petugas")));
-
-    public static final List<Kategori> kategori = new ArrayList<>(List.of(
-            new Kategori(1, "Teknologi"), new Kategori(2, "Pendidikan"),
-            new Kategori(3, "Manajemen"), new Kategori(4, "Sastra")));
-
-    public static final List<Buku> buku = new ArrayList<>(List.of(
-            new Buku("Pemrograman Java", "Abdul Kadir", "Teknologi", 10),
-            new Buku("Basis Data", "Rosa A.S.", "Teknologi", 8),
-            new Buku("Matematika Diskrit", "Rinaldi Munir", "Pendidikan", 5),
-            new Buku("Algoritma & Pemrograman", "Adi Nugroho", "Teknologi", 12),
-            new Buku("Sistem Informasi", "Jogiyanto", "Manajemen", 7)));
-
-    public static final List<Anggota> anggota = new ArrayList<>(List.of(
-            new Anggota("Budi Santoso", "Mahasiswa", "081234567890", "Denpasar"),
-            new Anggota("Siti Aminah", "Dosen", "081298765432", "Badung"),
-            new Anggota("Agus Pratama", "Umum", "085612345678", "Gianyar"),
-            new Anggota("Made Putri", "Mahasiswa", "087812345678", "Tabanan")));
-
+    // ===================== DATA (diisi dari database lewat muat()) =====================
+    public static final List<User> users = new ArrayList<>();
+    public static final List<Kategori> kategori = new ArrayList<>();
+    public static final List<Buku> buku = new ArrayList<>();
+    public static final List<Anggota> anggota = new ArrayList<>();
     public static final List<Transaksi> transaksi = new ArrayList<>();
 
-    /** Terbaru di indeks 0. */
-    public static final List<Aktivitas> aktivitas = new ArrayList<>(List.of(
-            new Aktivitas(LocalDate.of(2026, 10, 26), "Peminjaman", "2 buku dipinjam"),
-            new Aktivitas(LocalDate.of(2026, 10, 26), "Data buku", "Stok buku diperbarui"),
-            new Aktivitas(LocalDate.of(2026, 10, 25), "Pengembalian", "1 buku dikembalikan")));
+    /** Terbaru di indeks 0. Hanya di memori (skema database tidak punya tabel aktivitas). */
+    public static final List<Aktivitas> aktivitas = new ArrayList<>();
 
-    static {
-        seed(1, LocalDate.of(2026, 10, 5), 0, 0, LocalDate.of(2026, 10, 10));
-        seed(2, LocalDate.of(2026, 10, 8), 1, 1, LocalDate.of(2026, 10, 16));
-        seed(3, LocalDate.of(2026, 10, 12), 2, 2, LocalDate.of(2026, 10, 21));
-        seed(4, LocalDate.now().minusDays(10), 3, 3, null);   // belum kembali -> bisa dicoba di menu Pengembalian
-    }
+    /** User yang sedang login; dipakai sebagai id_user pada peminjaman dan laporan. */
+    public static User userLogin;
 
-    private static void seed(int id, LocalDate tgl, int a, int b, LocalDate kembali) {
-        Transaksi t = new Transaksi(id, tgl, anggota.get(a));
-        Detail d = new Detail(buku.get(b));
-        if (kembali != null) {
-            d.tglKembali = kembali;
-            d.denda = hariTerlambat(t, kembali) * DENDA_PER_HARI;
-        }
-        t.detail.add(d);
-        transaksi.add(t);
+    /** Baca semua data dari MySQL. Urutan penting: kategori -> buku -> anggota -> peminjaman. */
+    public static void muat() throws java.sql.SQLException {
+        users.clear();     users.addAll(UserDao.semua());
+        kategori.clear();  kategori.addAll(KategoriDao.semua());
+        buku.clear();      buku.addAll(BukuDao.semua());
+        anggota.clear();   anggota.addAll(AnggotaDao.semua());
+        transaksi.clear(); transaksi.addAll(PeminjamanDao.semua());
     }
 
     // ===================== UTILITAS =====================

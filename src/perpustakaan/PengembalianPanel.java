@@ -3,6 +3,7 @@ package perpustakaan;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Vector;
@@ -91,8 +92,15 @@ public class PengembalianPanel extends Page {
             warn(e.getMessage());
             return;
         }
+        int denda = Data.hariTerlambat(t, kembali) * Data.DENDA_PER_HARI;
+        try {
+            PeminjamanDao.kembali(d, kembali, denda);
+        } catch (SQLException ex) {
+            warn("Gagal menyimpan pengembalian: " + ex.getMessage());
+            return;
+        }
         d.tglKembali = kembali;
-        d.denda = Data.hariTerlambat(t, kembali) * Data.DENDA_PER_HARI;
+        d.denda = denda;
         d.buku.stok++;
         Data.catat("Pengembalian", "1 buku dikembalikan" + (d.denda > 0 ? " (denda " + Data.rupiah(d.denda) + ")" : ""));
         refresh();

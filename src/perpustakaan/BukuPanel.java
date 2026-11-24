@@ -16,6 +16,19 @@ public class BukuPanel extends CrudPanel<Data.Buku> {
         return b.judul.toLowerCase().contains(q) || b.pengarang.toLowerCase().contains(q);
     }
 
+    @Override protected void cekHapus(Data.Buku b) throws BusinessRuleException {
+        boolean dipakai = Data.transaksi.stream().anyMatch(t -> t.detail.stream().anyMatch(d -> d.buku == b));
+        if (dipakai) {
+            throw new BusinessRuleException("Buku \"" + b.judul + "\" sudah punya riwayat peminjaman, tidak dapat dihapus.");
+        }
+    }
+
+    @Override protected void simpanDb(Data.Buku b, boolean baru) throws Exception {
+        if (baru) BukuDao.tambah(b); else BukuDao.ubah(b);
+    }
+
+    @Override protected void hapusDb(Data.Buku b) throws Exception { BukuDao.hapus(b); }
+
     @Override protected Data.Buku form(Data.Buku b) {
         Theme.Field judul = new Theme.Field("Judul buku");
         Theme.Field pengarang = new Theme.Field("Nama pengarang");

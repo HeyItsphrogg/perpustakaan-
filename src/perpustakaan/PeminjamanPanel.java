@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -124,11 +125,16 @@ public class PeminjamanPanel extends Page {
             warn(e.getMessage());
             return;
         }
-        Data.Transaksi t = new Data.Transaksi(Data.nextTrxId(), LocalDate.now(), a);
+        Data.Transaksi t;
+        try {
+            t = PeminjamanDao.simpan(a, Data.userLogin, keranjang);   // header + detail + stok, satu transaksi DB
+        } catch (SQLException ex) {
+            warn("Gagal menyimpan transaksi: " + ex.getMessage());
+            return;
+        }
         int total = 0;
         for (Map.Entry<Data.Buku, Integer> e : keranjang.entrySet()) {
-            for (int i = 0; i < e.getValue(); i++) t.detail.add(new Data.Detail(e.getKey()));
-            e.getKey().stok -= e.getValue();
+            e.getKey().stok -= e.getValue();   // samakan stok di memori
             total += e.getValue();
         }
         Data.transaksi.add(t);

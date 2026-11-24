@@ -20,6 +20,12 @@ public class KategoriPanel extends CrudPanel<Data.Kategori> {
         }
     }
 
+    @Override protected void simpanDb(Data.Kategori k, boolean baru) throws Exception {
+        if (baru) KategoriDao.tambah(k); else KategoriDao.ubah(k);
+    }
+
+    @Override protected void hapusDb(Data.Kategori k) throws Exception { KategoriDao.hapus(k); }
+
     @Override protected Data.Kategori form(Data.Kategori k) {
         Theme.Field nama = new Theme.Field("Nama kategori");
         if (k != null) nama.setText(k.nama);
@@ -33,7 +39,7 @@ public class KategoriPanel extends CrudPanel<Data.Kategori> {
                 warn("Kategori \"" + n + "\" sudah ada.");
                 continue;
             }
-            if (k == null) return new Data.Kategori(Data.nextKategoriId(), n);
+            if (k == null) return new Data.Kategori(0, n);
             String lama = k.nama;
             k.nama = n;
             Data.buku.forEach(b -> { if (b.kategori.equals(lama)) b.kategori = n; });

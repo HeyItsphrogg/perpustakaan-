@@ -21,7 +21,16 @@ public class AnggotaPanel extends CrudPanel<Data.Anggota> {
         if (masihPinjam) {
             throw new BusinessRuleException("Anggota \"" + a.nama + "\" masih memiliki buku yang belum dikembalikan.");
         }
+        if (Data.transaksi.stream().anyMatch(t -> t.anggota == a)) {
+            throw new BusinessRuleException("Anggota \"" + a.nama + "\" sudah punya riwayat peminjaman, tidak dapat dihapus.");
+        }
     }
+
+    @Override protected void simpanDb(Data.Anggota a, boolean baru) throws Exception {
+        if (baru) AnggotaDao.tambah(a); else AnggotaDao.ubah(a);
+    }
+
+    @Override protected void hapusDb(Data.Anggota a) throws Exception { AnggotaDao.hapus(a); }
 
     @Override protected Data.Anggota form(Data.Anggota a) {
         Theme.Field nama = new Theme.Field("Nama lengkap");

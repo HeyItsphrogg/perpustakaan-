@@ -94,6 +94,13 @@ public class LaporanPanel extends Page {
         lblTrx.setText(String.valueOf(trx));
         lblBuku.setText(String.valueOf(buku));
         lblDenda.setText(Data.rupiah(denda));
+        if (tampilkanPesan) {   // hanya saat tombol ditekan, bukan saat refresh
+            try {
+                LaporanDao.simpan(Data.userLogin, awal, akhir, trx, buku, denda);
+            } catch (java.sql.SQLException ex) {
+                warn("Laporan tampil, tetapi gagal disimpan: " + ex.getMessage());
+            }
+        }
     }
 
     @Override public void refresh() { proses(false); }

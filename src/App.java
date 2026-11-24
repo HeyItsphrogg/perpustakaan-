@@ -1,5 +1,7 @@
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import perpustakaan.Data;
 import perpustakaan.LoginFrame;
 import perpustakaan.Theme;
 
@@ -11,7 +13,15 @@ import perpustakaan.Theme;
  */
 public class App {
     public static void main(String[] args) {
-        Theme.install();                                             // terapkan tema warna & font
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));   // buka login di thread Swing
+        Theme.install();
+        try {
+            Data.muat();   // baca semua data dari MySQL
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    "Gagal terhubung ke database.\nPastikan MySQL di XAMPP sudah Start.\n\n" + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }
